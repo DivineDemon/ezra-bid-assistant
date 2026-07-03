@@ -1,0 +1,33 @@
+import { defineManifest } from "@crxjs/vite-plugin";
+import packageJson from "./package.json";
+
+export default defineManifest({
+  manifest_version: 3,
+  name: "Ezra Bid Assistant",
+  version: packageJson.version,
+  description:
+    "AI bidding assistant for Freelancer.com. Generates proposal drafts for manual review — no auto-submit.",
+  permissions: ["sidePanel", "storage"],
+  host_permissions: ["*://*.freelancer.com/*"],
+  background: {
+    service_worker: "src/background/index.ts",
+    type: "module",
+  },
+  side_panel: {
+    default_path: "src/side-panel/index.html",
+  },
+  options_ui: {
+    page: "src/options/index.html",
+    open_in_tab: true,
+  },
+  content_scripts: [
+    {
+      matches: ["*://*.freelancer.com/projects/*"],
+      js: ["src/content/index.ts"],
+      run_at: "document_idle",
+    },
+  ],
+  action: {
+    default_title: "Ezra Bid Assistant",
+  },
+});
