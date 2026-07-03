@@ -1,4 +1,5 @@
 import type { ExtensionMessage, ExtensionMessageResponse } from "@ezra/shared";
+import { atomIconSvg, EZRA_PRIMARY } from "../assets/atom-icon";
 import {
   extractFreelancerProject,
   insertProposalIntoBidTextarea,
@@ -57,22 +58,34 @@ function injectButton(): void {
   const button = document.createElement("button");
   button.id = BUTTON_ID;
   button.type = "button";
-  button.textContent = "Generate Bid with Ezra";
   button.setAttribute("aria-label", "Generate Bid with Ezra");
   button.style.cssText = [
     "position:fixed",
     "bottom:24px",
     "right:24px",
     "z-index:2147483646",
+    "display:inline-flex",
+    "align-items:center",
+    "gap:8px",
     "padding:12px 16px",
     "border:none",
-    "border-radius:8px",
-    "background:#3b82f6",
+    "border-radius:9999px",
+    `background:${EZRA_PRIMARY}`,
     "color:#fff",
     "font:600 14px system-ui,sans-serif",
     "cursor:pointer",
     "box-shadow:0 4px 12px rgba(0,0,0,0.25)",
   ].join(";");
+
+  const icon = document.createElement("span");
+  icon.innerHTML = atomIconSvg({ size: 18, stroke: "#ffffff", strokeWidth: 2.25 });
+  icon.style.display = "inline-flex";
+  icon.style.lineHeight = "0";
+
+  const label = document.createElement("span");
+  label.textContent = "Generate Bid with Ezra";
+
+  button.append(icon, label);
 
   button.addEventListener("click", () => {
     sendProjectDetected();

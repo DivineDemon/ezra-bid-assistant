@@ -9,6 +9,12 @@ export default defineManifest({
     "AI bidding assistant for Freelancer.com. Generates proposal drafts for manual review — no auto-submit.",
   permissions: ["sidePanel", "storage", "scripting"],
   host_permissions: ["*://*.freelancer.com/*"],
+  icons: {
+    16: "public/icons/icon-16.png",
+    32: "public/icons/icon-32.png",
+    48: "public/icons/icon-48.png",
+    128: "public/icons/icon-128.png",
+  },
   background: {
     service_worker: "src/background/index.ts",
     type: "module",
@@ -29,5 +35,11 @@ export default defineManifest({
   ],
   action: {
     default_title: "Ezra Bid Assistant",
+    default_icon: {
+      16: "public/icons/icon-16.png",
+      32: "public/icons/icon-32.png",
+      48: "public/icons/icon-48.png",
+      128: "public/icons/icon-128.png",
+    },
   },
 });

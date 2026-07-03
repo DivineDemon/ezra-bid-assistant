@@ -7,12 +7,24 @@ import {
   type ProposalStyle,
 } from "@ezra/shared";
 import { useEffect, useState } from "react";
-import { ToastStack } from "../../components/toast-stack";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "../../hooks/use-toast";
+import { FieldGroup, FormActions, PageHeader, PageSection } from "../../layouts/app-shell-layout";
 import { loadSettings, updateSettings } from "../../lib/storage";
 
 export function PromptSettingsPage() {
-  const { toasts, showToast } = useToast();
+  const { showToast } = useToast();
   const [form, setForm] = useState<Pick<
     ExtensionSettings,
     | "defaultSignOff"
@@ -76,122 +88,136 @@ export function PromptSettingsPage() {
   };
 
   if (!form) {
-    return <p className="page-lead">Loading settings…</p>;
+    return <p className="text-sm text-muted-foreground">Loading settings…</p>;
   }
 
   return (
-    <>
-      <header className="page-header">
-        <h1>Prompt Settings</h1>
-        <p className="page-lead">
-          Defaults used when generating proposals in the side panel or Create Bid.
-        </p>
-      </header>
+    <PageSection>
+      <PageHeader
+        title="Prompt Settings"
+        description="Defaults used when generating proposals in the side panel or Create Bid."
+      />
 
-      <section className="card form-card">
-        <label className="field">
-          <span className="field-label">Sign-off name</span>
-          <input
-            type="text"
-            value={form.defaultSignOff}
-            onChange={(event) => updateField("defaultSignOff", event.target.value)}
-            placeholder="Kind regards, Desmond"
-          />
-        </label>
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div className="space-y-2">
+            <Label htmlFor="sign-off">Sign-off name</Label>
+            <Input
+              id="sign-off"
+              type="text"
+              value={form.defaultSignOff}
+              onChange={(event) => updateField("defaultSignOff", event.target.value)}
+              placeholder="Kind regards, Desmond"
+            />
+          </div>
 
-        <label className="field">
-          <span className="field-label">Company name</span>
-          <input
-            type="text"
-            value={form.companyName}
-            onChange={(event) => updateField("companyName", event.target.value)}
-            placeholder="Ezra Global"
-          />
-        </label>
+          <div className="space-y-2">
+            <Label htmlFor="company-name">Company name</Label>
+            <Input
+              id="company-name"
+              type="text"
+              value={form.companyName}
+              onChange={(event) => updateField("companyName", event.target.value)}
+              placeholder="Ezra Global"
+            />
+          </div>
 
-        <label className="field">
-          <span className="field-label">Services offered</span>
-          <textarea
-            rows={3}
-            value={form.servicesOffered}
-            onChange={(event) => updateField("servicesOffered", event.target.value)}
-            placeholder="Brief summary of services to weave into proposals"
-          />
-        </label>
+          <div className="space-y-2">
+            <Label htmlFor="services-offered">Services offered</Label>
+            <Textarea
+              id="services-offered"
+              rows={3}
+              value={form.servicesOffered}
+              onChange={(event) => updateField("servicesOffered", event.target.value)}
+              placeholder="Brief summary of services to weave into proposals"
+            />
+          </div>
 
-        <div className="field-row">
-          <label className="field">
-            <span className="field-label">Default proposal style</span>
-            <select
-              value={form.defaultProposalStyle}
-              onChange={(event) =>
-                updateField("defaultProposalStyle", event.target.value as ProposalStyle)
-              }
-            >
-              {PROPOSAL_STYLES.map((style) => (
-                <option key={style} value={style}>
-                  {style}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span className="field-label">Default proposal length</span>
-            <select
-              value={form.defaultProposalLength}
-              onChange={(event) =>
-                updateField("defaultProposalLength", event.target.value as ProposalLength)
-              }
-            >
-              {PROPOSAL_LENGTHS.map((length) => (
-                <option key={length} value={length}>
-                  {length}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+          <FieldGroup>
+            <div className="space-y-2">
+              <Label>Default proposal style</Label>
+              <Select
+                value={form.defaultProposalStyle}
+                onValueChange={(value) =>
+                  updateField("defaultProposalStyle", value as ProposalStyle)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROPOSAL_STYLES.map((style) => (
+                    <SelectItem key={style} value={style}>
+                      {style}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Default proposal length</Label>
+              <Select
+                value={form.defaultProposalLength}
+                onValueChange={(value) =>
+                  updateField("defaultProposalLength", value as ProposalLength)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROPOSAL_LENGTHS.map((length) => (
+                    <SelectItem key={length} value={length}>
+                      {length}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </FieldGroup>
 
-        <label className="field">
-          <span className="field-label">Default closing line</span>
-          <textarea
-            rows={2}
-            value={form.defaultClosingLine}
-            onChange={(event) => updateField("defaultClosingLine", event.target.value)}
-          />
-        </label>
+          <div className="space-y-2">
+            <Label htmlFor="closing-line">Default closing line</Label>
+            <Textarea
+              id="closing-line"
+              rows={2}
+              value={form.defaultClosingLine}
+              onChange={(event) => updateField("defaultClosingLine", event.target.value)}
+            />
+          </div>
 
-        <label className="field">
-          <span className="field-label">Words to avoid</span>
-          <textarea
-            rows={2}
-            value={form.wordsToAvoid}
-            onChange={(event) => updateField("wordsToAvoid", event.target.value)}
-            placeholder="Comma-separated words or phrases"
-          />
-        </label>
+          <div className="space-y-2">
+            <Label htmlFor="words-to-avoid">Words to avoid</Label>
+            <Textarea
+              id="words-to-avoid"
+              rows={2}
+              value={form.wordsToAvoid}
+              onChange={(event) => updateField("wordsToAvoid", event.target.value)}
+              placeholder="Comma-separated words or phrases"
+            />
+          </div>
 
-        <label className="field">
-          <span className="field-label">Default proposal rules</span>
-          <textarea
-            rows={10}
-            className="rules-textarea"
-            value={form.defaultProposalRules}
-            onChange={(event) => updateField("defaultProposalRules", event.target.value)}
-          />
-        </label>
+          <div className="space-y-2">
+            <Label htmlFor="proposal-rules">Default proposal rules</Label>
+            <Textarea
+              id="proposal-rules"
+              rows={10}
+              className="min-h-52"
+              value={form.defaultProposalRules}
+              onChange={(event) => updateField("defaultProposalRules", event.target.value)}
+            />
+          </div>
 
-        <div className="form-actions">
-          <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : "Save Prompt Settings"}
-          </button>
-          <button type="button" className="btn btn-ghost" onClick={handleReset}>
-            Reset to defaults
-          </button>
-        </div>
-      </section>
-
-      <ToastStack toasts={toasts} />
-    </>
+          <FormActions>
+            <Button type="button" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save Prompt Settings"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={handleReset}>
+              Reset to defaults
+            </Button>
+          </FormActions>
+        </CardContent>
+      </Card>
+    </PageSection>
   );
 }

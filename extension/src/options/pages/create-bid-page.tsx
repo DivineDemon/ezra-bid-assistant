@@ -10,8 +10,21 @@ import {
   type SavedDraft,
 } from "@ezra/shared";
 import { useCallback, useEffect, useState } from "react";
-import { ToastStack } from "../../components/toast-stack";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "../../hooks/use-toast";
+import { FieldGroup, PageHeader, PageSection } from "../../layouts/app-shell-layout";
 import { generateBid } from "../../lib/api";
 import { copyTextToClipboard } from "../../lib/clipboard";
 import { loadSettings, saveDraft, subscribeToStorageChanges } from "../../lib/storage";
@@ -45,7 +58,7 @@ interface CreateBidPageProps {
 }
 
 export function CreateBidPage({ loadedDraft, onDraftConsumed }: CreateBidPageProps) {
-  const { toasts, showToast } = useToast();
+  const { showToast } = useToast();
   const [form, setForm] = useState<ExtractedProject>(EMPTY_PROJECT);
   const [extraInstructions, setExtraInstructions] = useState("");
   const [proposalStyle, setProposalStyle] = useState<ProposalStyle>("Professional");
@@ -161,179 +174,176 @@ export function CreateBidPage({ loadedDraft, onDraftConsumed }: CreateBidPagePro
   };
 
   return (
-    <>
-      <header className="page-header">
-        <h1>Create Bid</h1>
-        <p className="page-lead">
-          Enter project details manually when you are not on a Freelancer project page.
-        </p>
-      </header>
+    <PageSection>
+      <PageHeader
+        title="Create Bid"
+        description="Enter project details manually when you are not on a Freelancer project page."
+      />
 
-      <section className="card form-card">
-        <label className="field">
-          <span className="field-label">Project title</span>
-          <input
-            type="text"
-            value={form.projectTitle}
-            onChange={(event) => updateField("projectTitle", event.target.value)}
-            placeholder="Project title"
-          />
-        </label>
-
-        <label className="field">
-          <span className="field-label">Project description</span>
-          <textarea
-            rows={6}
-            value={form.projectDescription}
-            onChange={(event) => updateField("projectDescription", event.target.value)}
-            placeholder="Project description"
-          />
-        </label>
-
-        <div className="field-row">
-          <label className="field">
-            <span className="field-label">Budget</span>
-            <input
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div className="space-y-2">
+            <Label htmlFor="project-title">Project title</Label>
+            <Input
+              id="project-title"
               type="text"
-              value={form.budget}
-              onChange={(event) => updateField("budget", event.target.value)}
-              placeholder="Budget"
+              value={form.projectTitle}
+              onChange={(event) => updateField("projectTitle", event.target.value)}
+              placeholder="Project title"
             />
-          </label>
-          <label className="field">
-            <span className="field-label">Skills</span>
-            <input
-              type="text"
-              value={form.skills}
-              onChange={(event) => updateField("skills", event.target.value)}
-              placeholder="Skills / tags"
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="project-description">Project description</Label>
+            <Textarea
+              id="project-description"
+              rows={6}
+              value={form.projectDescription}
+              onChange={(event) => updateField("projectDescription", event.target.value)}
+              placeholder="Project description"
             />
-          </label>
-        </div>
+          </div>
 
-        <div className="field-row">
-          <label className="field">
-            <span className="field-label">Client country</span>
-            <input
-              type="text"
-              value={form.clientCountry}
-              onChange={(event) => updateField("clientCountry", event.target.value)}
-              placeholder="If known"
+          <FieldGroup>
+            <div className="space-y-2">
+              <Label htmlFor="budget">Budget</Label>
+              <Input
+                id="budget"
+                type="text"
+                value={form.budget}
+                onChange={(event) => updateField("budget", event.target.value)}
+                placeholder="Budget"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="skills">Skills</Label>
+              <Input
+                id="skills"
+                type="text"
+                value={form.skills}
+                onChange={(event) => updateField("skills", event.target.value)}
+                placeholder="Skills / tags"
+              />
+            </div>
+          </FieldGroup>
+
+          <FieldGroup>
+            <div className="space-y-2">
+              <Label htmlFor="client-country">Client country</Label>
+              <Input
+                id="client-country"
+                type="text"
+                value={form.clientCountry}
+                onChange={(event) => updateField("clientCountry", event.target.value)}
+                placeholder="If known"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-type">Project type</Label>
+              <Input
+                id="project-type"
+                type="text"
+                value={form.projectType}
+                onChange={(event) => updateField("projectType", event.target.value)}
+                placeholder="Fixed / hourly"
+              />
+            </div>
+          </FieldGroup>
+
+          <div className="space-y-2">
+            <Label htmlFor="extra-instructions">Extra instructions</Label>
+            <Textarea
+              id="extra-instructions"
+              rows={3}
+              value={extraInstructions}
+              onChange={(event) => setExtraInstructions(event.target.value)}
+              placeholder="Optional notes for this proposal"
             />
-          </label>
-          <label className="field">
-            <span className="field-label">Project type</span>
-            <input
-              type="text"
-              value={form.projectType}
-              onChange={(event) => updateField("projectType", event.target.value)}
-              placeholder="Fixed / hourly"
-            />
-          </label>
-        </div>
+          </div>
 
-        <label className="field">
-          <span className="field-label">Extra instructions</span>
-          <textarea
-            rows={3}
-            value={extraInstructions}
-            onChange={(event) => setExtraInstructions(event.target.value)}
-            placeholder="Optional notes for this proposal"
-          />
-        </label>
+          <FieldGroup>
+            <div className="space-y-2">
+              <Label>Proposal style</Label>
+              <Select
+                value={proposalStyle}
+                onValueChange={(value) => setProposalStyle(value as ProposalStyle)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROPOSAL_STYLES.map((style) => (
+                    <SelectItem key={style} value={style}>
+                      {style}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Proposal length</Label>
+              <Select
+                value={proposalLength}
+                onValueChange={(value) => setProposalLength(value as ProposalLength)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROPOSAL_LENGTHS.map((length) => (
+                    <SelectItem key={length} value={length}>
+                      {length}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </FieldGroup>
 
-        <div className="field-row">
-          <label className="field">
-            <span className="field-label">Proposal style</span>
-            <select
-              value={proposalStyle}
-              onChange={(event) => setProposalStyle(event.target.value as ProposalStyle)}
-            >
-              {PROPOSAL_STYLES.map((style) => (
-                <option key={style} value={style}>
-                  {style}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span className="field-label">Proposal length</span>
-            <select
-              value={proposalLength}
-              onChange={(event) => setProposalLength(event.target.value as ProposalLength)}
-            >
-              {PROPOSAL_LENGTHS.map((length) => (
-                <option key={length} value={length}>
-                  {length}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={handleGenerate}
-          disabled={loading}
-        >
-          {loading ? "Generating…" : "Generate Proposal"}
-        </button>
-      </section>
+          <Button type="button" className="w-full" onClick={handleGenerate} disabled={loading}>
+            {loading ? "Generating…" : "Generate Proposal"}
+          </Button>
+        </CardContent>
+      </Card>
 
       {(proposal || loading) && (
-        <section className="card output-card">
-          <div className="output-header">
-            <h2>Generated proposal</h2>
-            {loading && <span className="loading-badge">Loading…</span>}
-          </div>
-          <textarea
-            className="proposal-output"
-            rows={14}
-            readOnly
-            value={loading ? "Generating your proposal…" : proposal}
-          />
-          <div className="action-grid">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleCopy}
-              disabled={!proposal}
-            >
-              Copy Proposal
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleGenerate}
-              disabled={loading}
-            >
-              Regenerate
-            </button>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={handleSaveDraft}
-              disabled={!proposal}
-            >
-              Save Draft
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              onClick={handleClear}
-              disabled={!proposal}
-            >
-              Clear
-            </button>
-          </div>
-          <p className="field-hint">
-            Insert Into Bid Box is available from the side panel on Freelancer.com.
-          </p>
-        </section>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0">
+            <CardTitle>Generated proposal</CardTitle>
+            {loading && <Badge variant="secondary">Loading…</Badge>}
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Textarea
+              className="min-h-60 font-mono text-sm leading-relaxed"
+              rows={14}
+              readOnly
+              value={loading ? "Generating your proposal…" : proposal}
+            />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button type="button" variant="secondary" onClick={handleCopy} disabled={!proposal}>
+                Copy Proposal
+              </Button>
+              <Button type="button" variant="secondary" onClick={handleGenerate} disabled={loading}>
+                Regenerate
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleSaveDraft}
+                disabled={!proposal}
+              >
+                Save Draft
+              </Button>
+              <Button type="button" variant="ghost" onClick={handleClear} disabled={!proposal}>
+                Clear
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Insert Into Bid Box is available from the side panel on Freelancer.com.
+            </p>
+          </CardContent>
+        </Card>
       )}
-
-      <ToastStack toasts={toasts} />
-    </>
+    </PageSection>
   );
 }

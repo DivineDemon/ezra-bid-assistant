@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
-import { ToastStack } from "../../components/toast-stack";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "../../hooks/use-toast";
+import { FormActions, PageHeader, PageSection } from "../../layouts/app-shell-layout";
 import { checkHealth } from "../../lib/api";
 import { loadSettings, updateSettings } from "../../lib/storage";
 
 export function ApiSettingsPage() {
-  const { toasts, showToast } = useToast();
+  const { showToast } = useToast();
   const [backendApiUrl, setBackendApiUrl] = useState("");
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -54,42 +58,43 @@ export function ApiSettingsPage() {
   };
 
   return (
-    <>
-      <header className="page-header">
-        <h1>API Settings</h1>
-        <p className="page-lead">
-          Point the extension at your private backend. Gemini credentials stay on the server only.
-        </p>
-      </header>
+    <PageSection>
+      <PageHeader
+        title="API Settings"
+        description="Point the extension at your private backend. Gemini credentials stay on the server only."
+      />
 
-      <section className="card form-card">
-        <label className="field">
-          <span className="field-label">Backend API URL</span>
-          <input
-            type="url"
-            value={backendApiUrl}
-            onChange={(event) => setBackendApiUrl(event.target.value)}
-            placeholder="http://localhost:3000"
-          />
-          <span className="field-hint">Requests go to POST /api/generate-bid on this host.</span>
-        </label>
+      <Card>
+        <CardContent className="space-y-4 pt-6">
+          <div className="space-y-2">
+            <Label htmlFor="backend-api-url">Backend API URL</Label>
+            <Input
+              id="backend-api-url"
+              type="url"
+              value={backendApiUrl}
+              onChange={(event) => setBackendApiUrl(event.target.value)}
+              placeholder="http://localhost:3000"
+            />
+            <p className="text-xs text-muted-foreground">
+              Requests go to POST /api/generate-bid on this host.
+            </p>
+          </div>
 
-        <div className="form-actions">
-          <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
-            {saving ? "Saving…" : "Save API Settings"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleTestConnection}
-            disabled={testing}
-          >
-            {testing ? "Testing…" : "Test Connection"}
-          </button>
-        </div>
-      </section>
-
-      <ToastStack toasts={toasts} />
-    </>
+          <FormActions>
+            <Button type="button" onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save API Settings"}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={handleTestConnection}
+              disabled={testing}
+            >
+              {testing ? "Testing…" : "Test Connection"}
+            </Button>
+          </FormActions>
+        </CardContent>
+      </Card>
+    </PageSection>
   );
 }
