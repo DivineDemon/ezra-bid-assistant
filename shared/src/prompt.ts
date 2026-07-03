@@ -21,7 +21,7 @@ function field(label: string, value: string): string | null {
   return trimmed ? `${label}: ${trimmed}` : null;
 }
 
-/** Builds system instructions and user input for the OpenAI Responses API. */
+/** Builds system instructions and user input for the Gemini generateContent API. */
 export function buildBidPrompt(request: GenerateBidRequest): {
   instructions: string;
   input: string;

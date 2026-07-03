@@ -98,7 +98,8 @@ export const FREELANCER_SELECTORS = {
   ],
 } as const;
 
-const PROJECT_PATH_PATTERN = /^\/projects\/[^/]+/i;
+/** Matches /projects/slug and locale-prefixed paths like /pk/projects/slug */
+const PROJECT_PATH_PATTERN = /\/projects\/[^/]+/i;
 const BUDGET_PATTERN =
   /(?:\$|€|£|USD|EUR|GBP|AUD|CAD|INR)\s*[\d,.]+|[\d,.]+\s*(?:USD|EUR|GBP|AUD)|(?:fixed|hourly)\s*price/i;
 const PROJECT_TYPE_PATTERN = /\b(fixed(?:\s*price)?|hourly|contest|recruiter)\b/i;

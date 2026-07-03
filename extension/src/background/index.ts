@@ -5,8 +5,12 @@ import type {
   ProjectExtractionMeta,
 } from "@ezra/shared";
 
+/** Must match the content script entry in manifest.config.ts (CRXJS loader path). */
+const CONTENT_SCRIPT_FILE = "src/content/index.ts-loader.js";
+
 const projectsByTab = new Map<number, ExtractedProject>();
 const extractionByTab = new Map<number, ProjectExtractionMeta>();
+let sidePanelHostTabId: number | undefined;
 
 function storeProject(
   tabId: number,
@@ -35,58 +39,132 @@ function relayToPanel(message: ExtensionMessage): void {
   });
 }
 
-function extractFromActiveTab(sendResponse: (response: ExtensionMessageResponse) => void): void {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tabId = tabs[0]?.id;
-    if (tabId === undefined) {
-      sendResponse({ success: false, error: "No active tab" });
+function isFreelancerUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  try {
+    return new URL(url).hostname.endsWith("freelancer.com");
+  } catch {
+    return false;
+  }
+}
+
+async function resolveFreelancerTabId(): Promise<number | undefined> {
+  if (sidePanelHostTabId !== undefined) {
+    try {
+      const tab = await chrome.tabs.get(sidePanelHostTabId);
+      if (tab.id !== undefined && isFreelancerUrl(tab.url)) {
+        return tab.id;
+      }
+    } catch {
+      sidePanelHostTabId = undefined;
+    }
+  }
+
+  const [focusedTab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  if (focusedTab?.id !== undefined && isFreelancerUrl(focusedTab.url)) {
+    return focusedTab.id;
+  }
+
+  const freelancerTabs = await chrome.tabs.query({
+    url: ["*://*.freelancer.com/*"],
+    lastFocusedWindow: true,
+  });
+  return freelancerTabs[0]?.id;
+}
+
+function sendMessageToTab(
+  tabId: number,
+  message: ExtensionMessage,
+  sendResponse: (response: ExtensionMessageResponse) => void,
+): void {
+  chrome.tabs.sendMessage(tabId, message, (response: ExtensionMessageResponse | undefined) => {
+    if (!chrome.runtime.lastError) {
+      sendResponse(response ?? { success: false, error: "No response from content script" });
       return;
     }
 
-    chrome.tabs.sendMessage(
-      tabId,
-      { type: "EXTRACT_PROJECT" } satisfies ExtensionMessage,
-      (response: ExtensionMessageResponse | undefined) => {
-        if (chrome.runtime.lastError) {
-          sendResponse({
-            success: false,
-            error:
-              chrome.runtime.lastError.message ??
-              "Could not read the Freelancer page. Open a project page and try again.",
-          });
-          return;
-        }
+    void chrome.scripting
+      .executeScript({
+        target: { tabId },
+        files: [CONTENT_SCRIPT_FILE],
+      })
+      .then(() => {
+        chrome.tabs.sendMessage(
+          tabId,
+          message,
+          (retryResponse: ExtensionMessageResponse | undefined) => {
+            if (chrome.runtime.lastError) {
+              sendResponse({
+                success: false,
+                error:
+                  "Could not read the Freelancer page. Reload the project page, then try again.",
+              });
+              return;
+            }
+            sendResponse(
+              retryResponse ?? { success: false, error: "No response from content script" },
+            );
+          },
+        );
+      })
+      .catch(() => {
+        sendResponse({
+          success: false,
+          error: "Could not read the Freelancer page. Reload the project page, then try again.",
+        });
+      });
+  });
+}
 
-        if (!response?.success) {
-          sendResponse(response ?? { success: false, error: "No response from content script" });
-          return;
-        }
+function handleExtractionResponse(
+  tabId: number,
+  response: ExtensionMessageResponse,
+  sendResponse: (response: ExtensionMessageResponse) => void,
+): void {
+  if (!response.success) {
+    sendResponse(response);
+    return;
+  }
 
-        if (response.project) {
-          storeProject(tabId, response.project, response.extraction);
-        } else {
-          projectsByTab.delete(tabId);
-          extractionByTab.delete(tabId);
-        }
+  if (response.project) {
+    storeProject(tabId, response.project, response.extraction);
+  } else {
+    projectsByTab.delete(tabId);
+    extractionByTab.delete(tabId);
+  }
 
-        if (
-          response.project &&
-          (response.project.projectTitle || response.project.projectDescription)
-        ) {
-          relayToPanel({
-            type: "PROJECT_DETECTED",
-            project: response.project,
-            extraction: response.extraction,
-          });
-        } else {
-          relayToPanel({
-            type: "PROJECT_NOT_DETECTED",
-            extraction: response.extraction,
-          });
-        }
+  if (response.project && (response.project.projectTitle || response.project.projectDescription)) {
+    relayToPanel({
+      type: "PROJECT_DETECTED",
+      project: response.project,
+      extraction: response.extraction,
+    });
+  } else {
+    relayToPanel({
+      type: "PROJECT_NOT_DETECTED",
+      extraction: response.extraction,
+    });
+  }
 
-        sendResponse(response);
-      },
+  sendResponse(response);
+}
+
+function extractFromFreelancerTab(
+  sendResponse: (response: ExtensionMessageResponse) => void,
+): void {
+  void resolveFreelancerTabId().then((tabId) => {
+    if (tabId === undefined) {
+      sendResponse({
+        success: false,
+        error: "No Freelancer.com tab found. Open a project page and try again.",
+      });
+      return;
+    }
+
+    sidePanelHostTabId = tabId;
+
+    sendMessageToTab(tabId, { type: "EXTRACT_PROJECT" } satisfies ExtensionMessage, (response) =>
+      handleExtractionResponse(tabId, response, sendResponse),
     );
   });
 }
@@ -97,9 +175,16 @@ chrome.runtime.onMessage.addListener(
     sender,
     sendResponse: (response: ExtensionMessageResponse) => void,
   ) => {
+    if (message.type === "REGISTER_SIDE_PANEL_HOST") {
+      sidePanelHostTabId = message.tabId;
+      sendResponse({ success: true });
+      return true;
+    }
+
     if (message.type === "PROJECT_DETECTED") {
       const tabId = sender.tab?.id;
       if (tabId !== undefined) {
+        sidePanelHostTabId = tabId;
         storeProject(tabId, message.project, message.extraction);
       }
       relayToPanel(message);
@@ -110,6 +195,7 @@ chrome.runtime.onMessage.addListener(
     if (message.type === "PROJECT_NOT_DETECTED") {
       const tabId = sender.tab?.id;
       if (tabId !== undefined) {
+        sidePanelHostTabId = tabId;
         projectsByTab.delete(tabId);
         if (message.extraction) {
           extractionByTab.set(tabId, message.extraction);
@@ -123,12 +209,10 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (message.type === "GET_CURRENT_PROJECT") {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tabId = tabs[0]?.id;
-        const project = getProjectForTab(tabId);
+      void resolveFreelancerTabId().then((tabId) => {
         sendResponse({
           success: true,
-          project,
+          project: getProjectForTab(tabId),
           extraction: getExtractionForTab(tabId),
         });
       });
@@ -136,14 +220,15 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (message.type === "REFRESH_CURRENT_PROJECT") {
-      extractFromActiveTab(sendResponse);
+      extractFromFreelancerTab(sendResponse);
       return true;
     }
 
     if (message.type === "OPEN_SIDE_PANEL") {
-      chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+      chrome.tabs.query({ active: true, lastFocusedWindow: true }, async (tabs) => {
         const tabId = tabs[0]?.id;
         if (tabId !== undefined) {
+          sidePanelHostTabId = tabId;
           await chrome.sidePanel.open({ tabId });
         }
         sendResponse({ success: true });
@@ -152,26 +237,13 @@ chrome.runtime.onMessage.addListener(
     }
 
     if (message.type === "INSERT_PROPOSAL") {
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tabId = tabs[0]?.id;
+      void resolveFreelancerTabId().then((tabId) => {
         if (tabId === undefined) {
-          sendResponse({ success: false, error: "No active tab" });
+          sendResponse({ success: false, error: "No Freelancer.com tab found." });
           return;
         }
-        chrome.tabs.sendMessage(
-          tabId,
-          message,
-          (response: ExtensionMessageResponse | undefined) => {
-            if (chrome.runtime.lastError) {
-              sendResponse({
-                success: false,
-                error: chrome.runtime.lastError.message ?? "Failed to insert proposal",
-              });
-              return;
-            }
-            sendResponse(response ?? { success: false, error: "No response from content script" });
-          },
-        );
+
+        sendMessageToTab(tabId, message, sendResponse);
       });
       return true;
     }
@@ -183,6 +255,9 @@ chrome.runtime.onMessage.addListener(
 chrome.tabs.onRemoved.addListener((tabId) => {
   projectsByTab.delete(tabId);
   extractionByTab.delete(tabId);
+  if (sidePanelHostTabId === tabId) {
+    sidePanelHostTabId = undefined;
+  }
 });
 
 chrome.runtime.onInstalled.addListener(() => {

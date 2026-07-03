@@ -20,7 +20,7 @@ Core workflow:
  7.⁠ ⁠I can review or edit the details before generating the proposal.
  8.⁠ ⁠I click “Generate Proposal”.
  9.⁠ ⁠The extension sends the project details to my private backend endpoint.
-10.⁠ ⁠The backend connects to the OpenAI API and returns a proposal.
+10.⁠ ⁠The backend connects to the Gemini API and returns a proposal.
 11.⁠ ⁠The proposal appears inside the side panel.
 12.⁠ ⁠I can copy the proposal or insert it into the Freelancer bid text box.
 13.⁠ ⁠I manually review and manually submit the bid myself.
@@ -98,15 +98,15 @@ Expected response:
 "proposal": "Generated proposal text here"
 }
 
-The Chrome Extension must not call OpenAI directly. The OpenAI API key must only be stored on the backend as an environment variable:
+The Chrome Extension must not call Gemini directly. The Gemini API key must only be stored on the backend as an environment variable:
 
-OPENAI_API_KEY
+GEMINI_API_KEY
 
 Please create a sample Next.js backend API route:
 
 /api/generate-bid
 
-The backend should receive the project details from the extension, build a clean prompt, call the OpenAI Responses API server-side, return only the generated proposal text, handle errors properly, and never expose the OpenAI API key to the extension.
+The backend should receive the project details from the extension, build a clean prompt, call the Gemini API server-side, return only the generated proposal text, handle errors properly, and never expose the Gemini API key to the extension.
 
 Default proposal rules:
 
@@ -158,7 +158,7 @@ Developer deliverables:
 •⁠  ⁠local storage or Chrome storage handling
 •⁠  ⁠sample Next.js /api/generate-bid backend route
 •⁠  ⁠setup instructions for installing dependencies
-•⁠  ⁠instructions for adding OPENAI_API_KEY to .env
+•⁠  ⁠instructions for adding GEMINI_API_KEY to .env
 •⁠  ⁠instructions for running the backend locally
 •⁠  ⁠instructions for loading the extension in Chrome developer mode
 •⁠  ⁠instructions for testing it on Freelancer.com

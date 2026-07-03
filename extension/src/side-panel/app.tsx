@@ -93,6 +93,15 @@ export function App() {
       if (changes.settings) applySettings(changes.settings);
     });
 
+    chrome.tabs.query({ active: true, lastFocusedWindow: true }, (tabs) => {
+      const tabId = tabs[0]?.id;
+      if (tabId !== undefined) {
+        sendMessage({ type: "REGISTER_SIDE_PANEL_HOST", tabId }).catch(() => {
+          // Background may be unavailable during development hot reload.
+        });
+      }
+    });
+
     sendMessage<ExtensionMessageResponse>({ type: "GET_CURRENT_PROJECT" })
       .then((response) => {
         if (response.success) {

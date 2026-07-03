@@ -5,7 +5,7 @@
     "": {
       "name": "ezra-bid-assistant",
       "devDependencies": {
-        "@biomejs/biome": "^2.3.11",
+        "@biomejs/biome": "^2.5.2",
       },
     },
     "backend": {

@@ -58,7 +58,7 @@ export function ApiSettingsPage() {
       <header className="page-header">
         <h1>API Settings</h1>
         <p className="page-lead">
-          Point the extension at your private backend. OpenAI credentials stay on the server only.
+          Point the extension at your private backend. Gemini credentials stay on the server only.
         </p>
       </header>
 

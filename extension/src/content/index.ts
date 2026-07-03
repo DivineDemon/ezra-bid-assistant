@@ -6,6 +6,7 @@ import {
   shouldReportProjectDetected,
 } from "./freelancer-dom";
 
+const SCRIPT_MARKER = "__ezraBidAssistantContentScript";
 const BUTTON_ID = "ezra-bid-assistant-trigger";
 const OBSERVER_DEBOUNCE_MS = 750;
 
@@ -115,29 +116,37 @@ function init(): void {
   watchForDomChanges();
 }
 
-chrome.runtime.onMessage.addListener(
-  (
-    message: ExtensionMessage,
-    _sender,
-    sendResponse: (response: ExtensionMessageResponse) => void,
-  ) => {
-    if (message.type === "EXTRACT_PROJECT") {
-      respondWithExtraction(sendResponse);
-      return true;
-    }
+function registerMessageListener(): void {
+  chrome.runtime.onMessage.addListener(
+    (
+      message: ExtensionMessage,
+      _sender,
+      sendResponse: (response: ExtensionMessageResponse) => void,
+    ) => {
+      if (message.type === "EXTRACT_PROJECT") {
+        respondWithExtraction(sendResponse);
+        return true;
+      }
 
-    if (message.type === "INSERT_PROPOSAL") {
-      const result = insertProposalIntoBidTextarea(message.proposal);
-      sendResponse(result.success ? { success: true } : { success: false, error: result.error });
-      return true;
-    }
+      if (message.type === "INSERT_PROPOSAL") {
+        const result = insertProposalIntoBidTextarea(message.proposal);
+        sendResponse(result.success ? { success: true } : { success: false, error: result.error });
+        return true;
+      }
 
-    return false;
-  },
-);
+      return false;
+    },
+  );
+}
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
-} else {
-  init();
+registerMessageListener();
+
+if (!(globalThis as Record<string, unknown>)[SCRIPT_MARKER]) {
+  (globalThis as Record<string, unknown>)[SCRIPT_MARKER] = true;
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 }

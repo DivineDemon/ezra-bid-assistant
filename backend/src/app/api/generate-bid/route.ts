@@ -1,7 +1,7 @@
 import type { ApiErrorResponse, GenerateBidRequest, GenerateBidResponse } from "@ezra/shared";
 import { buildBidPrompt } from "@ezra/shared";
 import { corsHeaders } from "@/lib/cors";
-import { generateProposal, OpenAIError } from "@/lib/openai";
+import { GeminiError, generateProposal } from "@/lib/gemini";
 
 export async function OPTIONS(request: Request) {
   return new Response(null, { status: 204, headers: corsHeaders(request, "POST, OPTIONS") });
@@ -39,9 +39,9 @@ export async function POST(request: Request) {
     return Response.json(error, { status: 400, headers });
   }
 
-  if (!process.env.OPENAI_API_KEY) {
+  if (!process.env.GEMINI_API_KEY) {
     const error: ApiErrorResponse = {
-      error: "OpenAI API key is not configured on the server",
+      error: "Gemini API key is not configured on the server",
     };
     return Response.json(error, { status: 503, headers });
   }
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const response: GenerateBidResponse = { proposal };
     return Response.json(response, { headers });
   } catch (error) {
-    if (error instanceof OpenAIError) {
+    if (error instanceof GeminiError) {
       const apiError: ApiErrorResponse = { error: error.message };
       return Response.json(apiError, { status: error.status, headers });
     }

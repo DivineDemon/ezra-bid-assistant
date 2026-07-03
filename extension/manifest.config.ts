@@ -7,7 +7,7 @@ export default defineManifest({
   version: packageJson.version,
   description:
     "AI bidding assistant for Freelancer.com. Generates proposal drafts for manual review — no auto-submit.",
-  permissions: ["sidePanel", "storage"],
+  permissions: ["sidePanel", "storage", "scripting"],
   host_permissions: ["*://*.freelancer.com/*"],
   background: {
     service_worker: "src/background/index.ts",
@@ -22,7 +22,7 @@ export default defineManifest({
   },
   content_scripts: [
     {
-      matches: ["*://*.freelancer.com/projects/*"],
+      matches: ["*://*.freelancer.com/*"],
       js: ["src/content/index.ts"],
       run_at: "document_idle",
     },

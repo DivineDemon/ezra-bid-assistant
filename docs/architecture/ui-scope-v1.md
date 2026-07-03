@@ -31,7 +31,7 @@ The side panel and options page share one React component library and design tok
 
 - **Dashboard** (stats, recent bids, avg length) is analytics over local history — valuable but not required for the core safety-bounded workflow in `idea.md`.
 - **Dev Guide** duplicates setup docs that belong in `README.md`; a dedicated in-extension page is polish, not MVP.
-- **API Settings** mockup shows OpenAI model and temperature — those are **backend env vars** (`OPENAI_API_KEY`, model config), not extension client settings. Exposing them in the UI would mislead users and violate the “key only on backend” rule.
+- **API Settings** mockup shows Gemini model and temperature — those are **backend env vars** (`GEMINI_API_KEY`, model config), not extension client settings. Exposing them in the UI would mislead users and violate the “key only on backend” rule.
 - Shipping Dashboard + Dev Guide before the bid loop works adds surface area without improving day-one utility.
 
 ### Why hybrid works
@@ -105,7 +105,7 @@ Options page uses the mockup shell: left sidebar, logo, nav items above, version
 |---------|-----------------|
 | Dashboard (total bids, avg length, recent bids) | Requires local analytics schema and UI polish; optional per plan Phase 3 |
 | Dev Guide (in-extension page) | Content lives in README; inline page is documentation duplication |
-| OpenAI model / temperature in UI | Backend-only configuration |
+| Gemini model / temperature in UI | Backend-only configuration |
 | “Extension Preview” toggle on Create Bid | Dev convenience; side panel IS the preview in production |
 
 ---

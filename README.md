@@ -1,12 +1,12 @@
 # Ezra Bid Assistant
 
-A private Chrome extension that helps draft Freelancer.com proposals faster. It extracts visible project details from the page, generates a proposal through your own backend and OpenAI, and lets you copy or insert the text into the bid box. **It never auto-submits bids.**
+A private Chrome extension that helps draft Freelancer.com proposals faster. It extracts visible project details from the page, generates a proposal through your own backend and Gemini, and lets you copy or insert the text into the bid box. **It never auto-submits bids.**
 
 ## Prerequisites
 
 - [Bun](https://bun.sh/) 1.3+ (the repo uses Bun workspaces)
 - Google Chrome (Manifest V3 side panel support)
-- An [OpenAI API key](https://platform.openai.com/api-keys) with access to the Responses API
+- A [Google Gemini API key](https://aistudio.google.com/apikey)
 - A Freelancer.com account for end-to-end testing
 
 ## Repository layout
@@ -31,7 +31,7 @@ bun install
 
 ### 2. Configure the backend
 
-Copy the example env file and add your OpenAI key:
+Copy the example env file and add your Gemini key:
 
 ```bash
 cp backend/.env.example backend/.env
@@ -41,9 +41,9 @@ Edit `backend/.env`:
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `OPENAI_API_KEY` | Yes | — | Server-side only; never stored in the extension |
-| `OPENAI_MODEL` | No | `gpt-4o` | Model passed to the OpenAI Responses API |
-| `OPENAI_TEMPERATURE` | No | `0.7` | Sampling temperature (0–2) |
+| `GEMINI_API_KEY` | Yes | — | Server-side only; never stored in the extension |
+| `GEMINI_MODEL` | No | `gemini-2.5-flash-lite` | Model passed to the Gemini API |
+| `GEMINI_TEMPERATURE` | No | `0.7` | Sampling temperature (0–2) |
 | `ALLOWED_ORIGINS` | No | — | Comma-separated extra CORS origins for production (see below) |
 
 The extension only needs the **backend base URL** (default `http://localhost:3000`). Model and temperature are backend env vars, not client settings.
@@ -119,7 +119,7 @@ Use a real project page to validate detection, generation, and insert behavior.
 
 ### 1. Start the stack
 
-- Backend running with a valid `OPENAI_API_KEY` in `backend/.env`
+- Backend running with a valid `GEMINI_API_KEY` in `backend/.env`
 - Extension loaded from `extension/dist`
 - In **API Settings**, backend URL set (e.g. `http://localhost:3000`) and **Test Connection** succeeds
 
@@ -163,7 +163,7 @@ The extension only writes into the textarea. It does not click Submit or automat
 | No floating button | Confirm URL is `/projects/...`; reload the page; check the extension is enabled |
 | “No project detected” | Freelancer may have changed their DOM; fill fields manually or use **Create Bid** in options |
 | Health check fails | Ensure `bun run dev:backend` is running and the URL has no trailing path (use `http://localhost:3000`) |
-| Generate fails with 503 | Set `OPENAI_API_KEY` in `backend/.env` and restart the backend |
+| Generate fails with 503 | Set `GEMINI_API_KEY` in `backend/.env` and restart the backend |
 | Insert fails | Open the bid modal first so the textarea exists; then insert again |
 | CORS / network errors | Backend must be reachable from the extension; for production, deploy the backend and set that URL in API Settings |
 
@@ -203,11 +203,11 @@ Response:
 - **No auto-submit** — proposals are inserted as text only; you submit manually.
 - **No credential harvesting** — no cookies, passwords, or session tokens are read or sent.
 - **Minimal permissions** — `sidePanel`, `storage`, and host access to `*.freelancer.com` only.
-- **OpenAI key on server** — the extension talks only to your backend; the API key stays in `backend/.env`.
+- **Gemini key on server** — the extension talks only to your backend; the API key stays in `backend/.env`.
 
 ## Production deployment
 
-1. Deploy the Next.js backend (e.g. Vercel) with `OPENAI_API_KEY` set in the host’s environment.
+1. Deploy the Next.js backend (e.g. Vercel) with `GEMINI_API_KEY` set in the host’s environment.
 2. Set `ALLOWED_ORIGINS` to your deployed backend URL if you use a custom domain for API access from the extension.
 3. Run `bun run build` and load `extension/dist`, or distribute the built folder as a private unpacked extension.
 4. Set the deployed backend URL in **API Settings** and run **Test Connection**.

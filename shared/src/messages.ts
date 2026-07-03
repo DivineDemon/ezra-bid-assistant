@@ -5,6 +5,7 @@ export type ExtensionMessage =
   | { type: "OPEN_SIDE_PANEL" }
   | { type: "GET_CURRENT_PROJECT" }
   | { type: "REFRESH_CURRENT_PROJECT" }
+  | { type: "REGISTER_SIDE_PANEL_HOST"; tabId: number }
   | { type: "EXTRACT_PROJECT" }
   | {
       type: "PROJECT_DETECTED";
