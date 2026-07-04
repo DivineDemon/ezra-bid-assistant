@@ -42,7 +42,7 @@ Edit `backend/.env`:
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `GEMINI_API_KEY` | Yes | — | Server-side only; never stored in the extension |
-| `GEMINI_MODEL` | No | `gemini-2.5-flash-lite` | Model passed to the Gemini API |
+| `GEMINI_MODEL` | No | `gemini-3.1-flash-lite` | Model passed to the Gemini API |
 | `GEMINI_TEMPERATURE` | No | `0.7` | Sampling temperature (0–2) |
 | `ALLOWED_ORIGINS` | No | — | Comma-separated extra CORS origins for production (see below) |
 

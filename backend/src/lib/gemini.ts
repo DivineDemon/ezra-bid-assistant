@@ -55,7 +55,7 @@ export async function generateProposal(instructions: string, input: string): Pro
     throw new GeminiError("Gemini API key is not configured on the server", 503);
   }
 
-  const model = process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash-lite";
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.1-flash-lite";
   const temperature = parseTemperature();
   const url = `${GEMINI_API_BASE}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
